@@ -1,0 +1,138 @@
+# Database Project
+# Written by: Lenny Muriungi
+# Cohort: CSFB-FT05
+# Description: Sorts student grades and generates an individual and group report
+
+# Data structure to store student records
+students = {}  # {student_name: {course_name: grade}}
+courses = []   # List of all courses
+
+def printMenu():
+    print("1. Add a student record")
+    print("2. Add a course")
+    print("3. Print all report cards")
+    print("4. Print classes and grades")
+    print("5. Read data")
+    print("6. Save data")
+    print("7. Exit")
+
+def addStudent():
+    print("Input Student's Name and Grades for each course")
+    student_name = input("Enter the student's name: ").strip()
+    if student_name in students:
+        print(f"Student '{student_name}' already exists. Updating their record.")
+    else:
+        students[student_name] = {}
+    for course in courses:
+        try:
+            grade = float(input(f"Enter grade for {course}: "))
+            students[student_name][course] = grade
+        except ValueError:
+            print("Invalid grade. Please enter a numeric value.")
+    print(f"Student record for '{student_name}' added/updated successfully!")
+
+def addCourse():
+    try:
+        num_courses = int(input("How many courses would you like to add? "))
+        for _ in range(num_courses):
+            course_name = input("Enter the course name: ").strip()
+            if course_name in courses:
+                print(f"Course '{course_name}' already exists.")
+            else:
+                courses.append(course_name)
+                print(f"Course '{course_name}' added successfully!")
+    except ValueError:
+        print("Invalid input! Please enter a numeric value for the number of courses.")
+
+def printReportCard():
+    student_name = input("Enter the student's name to generate their report card: ").strip()
+    if student_name in students:
+        print(f"Report Card for {student_name}:")
+        total_grades = 0
+        num_courses = 0
+        for course, grade in students[student_name].items():
+            print(f"  {course}: {grade}")
+            total_grades += grade
+            num_courses += 1
+        if num_courses > 0:
+            average = total_grades / num_courses
+            print(f"  Average Grade: {average:.2f}")
+        else:
+            print("  No grades available.")
+    else:
+        print(f"Student '{student_name}' not found.")
+
+def printClasses():
+    if not courses:
+        print("No courses available.")
+        return
+    print("Class Grades:")
+    for course in courses:
+        print(f"  {course}:")
+        total_grades = 0
+        num_students = 0
+        for student, grades in students.items():
+            if course in grades:
+                print(f"    {student}: {grades[course]}")
+                total_grades += grades[course]
+                num_students += 1
+        if num_students > 0:
+            average = total_grades / num_students
+            print(f"    Average Grade: {average:.2f}")
+        else:
+            print("    No grades available for this course.")
+
+def readData(file):
+    global students, courses
+    try:
+        with open(file, "r") as f:
+            data = f.read().splitlines()
+            courses = data[0].split(",") if data else []
+            students = {}
+            for line in data[1:]:
+                parts = line.split(",")
+                student_name = parts[0]
+                grades = map(float, parts[1:])
+                students[student_name] = dict(zip(courses, grades))
+        print("Data loaded successfully!")
+    except FileNotFoundError:
+        print(f"File '{file}' not found.")
+    except Exception as e:
+        print(f"An error occurred while reading the file: {e}")
+
+def writeData(file):
+    try:
+        with open(file, "w") as f:
+            f.write(",".join(courses) + "\n")
+            for student, grades in students.items():
+                grades_list = [str(grades.get(course, "")) for course in courses]
+                f.write(f"{student}," + ",".join(grades_list) + "\n")
+        print("Data saved successfully!")
+    except Exception as e:
+        print(f"An error occurred while saving the file: {e}")
+
+if __name__ == "__main__":
+    filename = "data.txt"
+    choice = 0
+    while choice != 7:
+        printMenu()
+        try:
+            choice = int(input("Please select a menu item [1-7]: "))
+            if choice == 1:
+                addStudent()
+            elif choice == 2:
+                addCourse()
+            elif choice == 3:
+                printReportCard()
+            elif choice == 4:
+                printClasses()
+            elif choice == 5:
+                readData(filename)
+            elif choice == 6:
+                writeData(filename)
+            elif choice == 7:
+                print("Exiting the program. Goodbye!")
+            else:
+                print("Invalid choice! Please select a valid menu option.")
+        except ValueError:
+            print("Invalid input! Please enter a number between 1 and 7.")
